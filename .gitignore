@@ -1,0 +1,88 @@
+# IDEs
+/.idea/
+*.iml
+*.iws
+*.ipr
+/.vscode/
+/.settings/
+/.classpath
+/.project
+.DS_Store
+
+# Build directories
+/out/
+/target/
+*/target/
+build/
+dist/
+
+# Maven
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Gradle (falls später verwendet)
+.gradle/
+gradle-app.setting
+!gradle-wrapper.jar
+.gradletasknamecache
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Test outputs
+test-output/
+*.class
+
+# Package Files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Spring Boot
+spring-boot-devtools.properties
+application-local.properties
+application-local.yml
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+.cache
+*.orig
+
+# OS specific
+Thumbs.db
+Desktop.ini
+
+# Security
+*.key
+*.pem
+*.p12
+*.jks
+secrets/
+.env
+.env.local
+
+# Generated documentation
+/docs/api/
+
+# Test resources (keep examples but exclude generated test files)
+src/test/resources/test-api.yaml
+src/test/resources/test-api.json
+
+QUICKSTART.md
+CHANGELOG_FORMATS.md

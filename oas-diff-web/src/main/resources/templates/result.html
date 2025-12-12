@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vergleichsergebnis - OAS Diff Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .header {
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .summary-card {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .summary-card h3 {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .summary-card .value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .warning-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            color: #856404;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            font-weight: 600;
+            font-size: 18px;
+        }
+        .success-box {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            font-weight: 600;
+            font-size: 18px;
+        }
+        .report-section {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .report-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        .report-content {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            line-height: 1.6;
+        }
+        .changes-list {
+            margin-top: 20px;
+        }
+        .change-item {
+            background: white;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .change-item.breaking {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+        .change-item .path {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .change-item .type {
+            color: #666;
+            font-size: 14px;
+        }
+        .change-item .description {
+            color: #555;
+            margin-top: 5px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+        .badge-critical {
+            background: #dc3545;
+            color: white;
+        }
+        .badge-major {
+            background: #ffc107;
+            color: #333;
+        }
+        .badge-minor {
+            background: #17a2b8;
+            color: white;
+        }
+        .badge-info {
+            background: #6c757d;
+            color: white;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        .actions {
+            margin-top: 30px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Vergleichsergebnis</h1>
+            <p style="color: #666; margin-top: 10px;">
+                <strong>Alt:</strong> <span th:text="${oldSpecPath}"></span>
+                (<span th:text="${result.oldVersion}"></span>)
+                →
+                <strong>Neu:</strong> <span th:text="${newSpecPath}"></span>
+                (<span th:text="${result.newVersion}"></span>)
+            </p>
+        </div>
+
+        <div class="summary">
+            <div class="summary-card">
+                <h3>Änderungen gesamt</h3>
+                <div class="value" th:text="${result.totalChangesCount}">0</div>
+            </div>
+            <div class="summary-card">
+                <h3>Breaking Changes</h3>
+                <div class="value" style="color: #dc3545;" th:text="${result.breakingChangesCount}">0</div>
+            </div>
+            <div class="summary-card">
+                <h3>Nicht-Breaking</h3>
+                <div class="value" style="color: #28a745;" th:text="${result.totalChangesCount - result.breakingChangesCount}">0</div>
+            </div>
+        </div>
+
+        <div th:if="${result.hasBreakingChanges}" class="warning-box">
+            ⚠️ WARNUNG: Diese Version enthält Breaking Changes!
+        </div>
+
+        <div th:unless="${result.hasBreakingChanges}" class="success-box">
+            ✓ Diese Version ist abwärtskompatibel (keine Breaking Changes)
+        </div>
+
+        <div class="report-section">
+            <h2>🔍 Detaillierter Bericht</h2>
+            <div class="report-content" th:text="${report}"></div>
+        </div>
+
+        <div th:if="${result.breakingChanges.size() > 0}" class="report-section">
+            <h2>💥 Breaking Changes im Detail</h2>
+            <div class="changes-list">
+                <div th:each="change : ${result.breakingChanges}" class="change-item breaking">
+                    <div>
+                        <span class="badge"
+                              th:classappend="${change.severity.name() == 'CRITICAL'} ? 'badge-critical' :
+                                              (${change.severity.name() == 'MAJOR'} ? 'badge-major' :
+                                              (${change.severity.name() == 'MINOR'} ? 'badge-minor' : 'badge-info'))"
+                              th:text="${change.severity.displayName}"></span>
+                        <span class="path" th:text="${change.path}"></span>
+                    </div>
+                    <div class="type" th:text="${change.type.description}"></div>
+                    <div class="description" th:text="${change.description}"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <a href="/" class="btn">← Neuer Vergleich</a>
+        </div>
+    </div>
+</body>
+</html>
+
