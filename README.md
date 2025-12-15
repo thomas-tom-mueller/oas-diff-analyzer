@@ -178,7 +178,7 @@ Die Anwendung kann über `application.properties` konfiguriert werden:
 server.port=8080
 
 # Logging-Level
-logging.level.com.oas.diff=DEBUG
+logging.level.com.majtom.oas=DEBUG
 
 # File Upload Limits
 spring.servlet.multipart.max-file-size=10MB
@@ -200,7 +200,7 @@ Das Projekt folgt Best Practices:
 
 ### Neue Breaking-Change-Regel hinzufügen
 
-1. Erstelle eine Klasse in `com.oas.diff.rules`
+1. Erstelle eine Klasse in `com.majtom.oas.rules`
 2. Implementiere das `BreakingChangeRule` Interface
 3. Annotiere mit `@Component`
 4. Die Regel wird automatisch erkannt und angewendet

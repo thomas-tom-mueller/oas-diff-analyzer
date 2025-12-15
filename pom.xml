@@ -11,7 +11,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.oas.diff</groupId>
+    <groupId>com.majtom.oas</groupId>
     <artifactId>oas-diff-analyzer</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
@@ -52,7 +52,7 @@
 
             <!-- Interne Module -->
             <dependency>
-                <groupId>com.oas.diff</groupId>
+                <groupId>com.majtom.oas</groupId>
                 <artifactId>oas-diff-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
