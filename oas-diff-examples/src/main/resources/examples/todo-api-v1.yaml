@@ -182,6 +182,19 @@ paths:
       operationId: getTodoById
       tags:
         - Todos
+      parameters:
+        - name: includeDetails
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Detaillierte Informationen einschließen
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Ausgabeformat
       responses:
         '200':
           description: Todo gefunden
@@ -191,6 +204,8 @@ paths:
                 $ref: '#/components/schemas/Todo'
         '404':
           description: Todo nicht gefunden
+        '410':
+          description: Todo wurde gelöscht
 
     put:
       summary: Todo aktualisieren
@@ -221,6 +236,41 @@ paths:
           description: Todo gelöscht
         '404':
           description: Todo nicht gefunden
+
+  /categories:
+    get:
+      summary: Alle Kategorien abrufen
+      operationId: getCategories
+      tags:
+        - Categories
+      responses:
+        '200':
+          description: Liste der Kategorien
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+
+    post:
+      summary: Neue Kategorie erstellen
+      operationId: createCategory
+      tags:
+        - Categories
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryInput'
+      responses:
+        '201':
+          description: Kategorie erstellt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
 
 components:
   schemas:
@@ -289,7 +339,11 @@ components:
             - LOW
             - MEDIUM
             - HIGH
+            - URGENT
         userId:
+          type: integer
+          format: int64
+        categoryId:
           type: integer
           format: int64
         createdAt:
@@ -323,4 +377,50 @@ components:
             - LOW
             - MEDIUM
             - HIGH
+            - URGENT
+        categoryId:
+          type: integer
+          format: int64
+
+    Category:
+      type: object
+      required:
+        - id
+        - name
+        - color
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+          example: Work
+        description:
+          type: string
+          example: Work-related tasks
+        color:
+          type: string
+          example: "#FF5733"
+        icon:
+          type: string
+          example: briefcase
+
+    CategoryInput:
+      type: object
+      required:
+        - name
+        - color
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+        description:
+          type: string
+          maxLength: 200
+        color:
+          type: string
+          pattern: "^#[0-9A-Fa-f]{6}$"
+        icon:
+          type: string
 

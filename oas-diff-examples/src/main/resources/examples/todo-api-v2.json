@@ -262,13 +262,33 @@
         "tags": [
           "Todos"
         ],
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Ausgabeformat (1=JSON, 2=XML)"
+          },
+          {
+            "name": "includeHistory",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Historie einschlie\u00dfen"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Todo gefunden",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Todo"
+                  "$ref": "#/components/schemas/TodoDetailed"
                 }
               }
             }
@@ -289,7 +309,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TodoInput"
+                "$ref": "#/components/schemas/TodoUpdateInput"
               }
             }
           }
@@ -319,6 +339,42 @@
           },
           "404": {
             "description": "Todo nicht gefunden"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Todo teilweise aktualisieren",
+        "operationId": "patchTodo",
+        "tags": [
+          "Todos"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Todo teilweise aktualisiert"
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health Check",
+        "operationId": "healthCheck",
+        "tags": [
+          "System"
+        ],
+        "responses": {
+          "200": {
+            "description": "System is healthy"
           }
         }
       }
@@ -440,8 +496,7 @@
             "format": "date-time"
           },
           "updatedAt": {
-            "type": "string",
-            "format": "date-time"
+            "type": "integer"
           },
           "dueDate": {
             "type": "string",
@@ -485,6 +540,86 @@
           "dueDate": {
             "type": "string",
             "format": "date"
+          }
+        }
+      },
+      "TodoDetailed": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "status",
+          "userId"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "OPEN",
+              "IN_PROGRESS",
+              "COMPLETED",
+              "CANCELLED"
+            ]
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ]
+          },
+          "userId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "integer"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "TodoUpdateInput": {
+        "type": "object",
+        "required": [
+          "title",
+          "priority"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
           }
         }
       }
