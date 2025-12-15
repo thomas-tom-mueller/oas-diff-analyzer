@@ -11,6 +11,9 @@ servers:
   - url: https://api.example.com/v1
     description: Produktionsserver
 
+security:
+  - apiKey: []
+
 paths:
   /users:
     get:
@@ -126,6 +129,8 @@ paths:
         - name: status
           in: query
           required: false
+          style: form
+          explode: true
           schema:
             type: string
             enum:
@@ -154,13 +159,31 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/TodoInput'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/TodoInput'
       responses:
         '200':
           description: Todo erstellt
+          headers:
+            X-Request-Id:
+              schema:
+                type: string
+              description: Eindeutige Request-ID
+            X-Response-Time:
+              schema:
+                type: integer
+              description: Antwortzeit in Millisekunden
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Todo'
+          links:
+            GetTodoById:
+              $ref: '#/components/links/GetTodoById'
+      callbacks:
+        todoStatusChanged:
+          $ref: '#/components/callbacks/todoStatusChanged'
 
   /users/{userId}/todos/{todoId}:
     parameters:
@@ -259,9 +282,12 @@ paths:
       tags:
         - Categories
       requestBody:
-        required: true
+        required: false
         content:
           application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryInput'
+          application/xml:
             schema:
               $ref: '#/components/schemas/CategoryInput'
       responses:
@@ -371,6 +397,7 @@ components:
             - OPEN
             - IN_PROGRESS
             - COMPLETED
+          default: OPEN
         priority:
           type: string
           enum:
@@ -378,9 +405,12 @@ components:
             - MEDIUM
             - HIGH
             - URGENT
+          default: MEDIUM
         categoryId:
           type: integer
           format: int64
+          readOnly: false
+          writeOnly: false
 
     Category:
       type: object
@@ -395,6 +425,8 @@ components:
         name:
           type: string
           example: Work
+          minLength: 1
+          maxLength: 100
         description:
           type: string
           example: Work-related tasks
@@ -404,6 +436,20 @@ components:
         icon:
           type: string
           example: briefcase
+        priority:
+          type: integer
+          minimum: 1
+          maximum: 100
+        tags:
+          type: array
+          items:
+            type: string
+          minItems: 0
+          maxItems: 20
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
 
     CategoryInput:
       type: object
@@ -424,3 +470,101 @@ components:
         icon:
           type: string
 
+    Notification:
+      type: object
+      required:
+        - notificationType
+      properties:
+        notificationType:
+          type: string
+      discriminator:
+        propertyName: notificationType
+        mapping:
+          email: '#/components/schemas/EmailNotification'
+          sms: '#/components/schemas/SmsNotification'
+      oneOf:
+        - $ref: '#/components/schemas/EmailNotification'
+        - $ref: '#/components/schemas/SmsNotification'
+
+    EmailNotification:
+      allOf:
+        - $ref: '#/components/schemas/Notification'
+        - type: object
+          required:
+            - emailAddress
+          properties:
+            emailAddress:
+              type: string
+              format: email
+            subject:
+              type: string
+
+    SmsNotification:
+      allOf:
+        - $ref: '#/components/schemas/Notification'
+        - type: object
+          required:
+            - phoneNumber
+          properties:
+            phoneNumber:
+              type: string
+              pattern: "^\\+[1-9]\\d{1,14}$"
+            message:
+              type: string
+              maxLength: 160
+
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    oauth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://auth.example.com/oauth/authorize
+          tokenUrl: https://auth.example.com/oauth/token
+          scopes:
+            read:todos: Todos lesen
+            write:todos: Todos schreiben
+            delete:todos: Todos löschen
+            admin: Administratorrechte
+
+  responses:
+    UnauthorizedError:
+      description: Zugriff verweigert - Authentifizierung erforderlich
+      headers:
+        X-Rate-Limit:
+          schema:
+            type: integer
+          description: Anzahl der verbleibenden Anfragen
+        X-Rate-Limit-Reset:
+          schema:
+            type: string
+            format: date-time
+          description: Zeitpunkt des Rate-Limit-Resets
+
+  callbacks:
+    todoStatusChanged:
+      '{$request.body#/callbackUrl}':
+        post:
+          requestBody:
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    todoId:
+                      type: integer
+                    newStatus:
+                      type: string
+          responses:
+            '200':
+              description: Callback erfolgreich
+
+  links:
+    GetTodoById:
+      operationId: getTodoById
+      parameters:
+        todoId: '$response.body#/id'
+        userId: '$response.body#/userId'

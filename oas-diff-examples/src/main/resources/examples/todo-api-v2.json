@@ -15,6 +15,14 @@
       "description": "Produktionsserver V2"
     }
   ],
+  "security": [
+    {
+      "oauth2": [
+        "read:todos",
+        "write:todos"
+      ]
+    }
+  ],
   "paths": {
     "/users": {
       "get": {
@@ -177,6 +185,8 @@
             "name": "status",
             "in": "query",
             "required": false,
+            "style": "spaceDelimited",
+            "explode": false,
             "schema": {
               "type": "string",
               "enum": [
@@ -208,6 +218,7 @@
       "post": {
         "summary": "Neues Todo erstellen",
         "operationId": "createTodo",
+        "deprecated": true,
         "tags": [
           "Todos"
         ],
@@ -224,13 +235,36 @@
         "responses": {
           "201": {
             "description": "Todo erstellt",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Eindeutige Request-ID"
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Todo"
                 }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/Todo"
+                }
+              }
+            },
+            "links": {
+              "GetUserTodos": {
+                "$ref": "#/components/links/GetUserTodos"
               }
             }
+          }
+        },
+        "callbacks": {
+          "todoCreated": {
+            "$ref": "#/components/callbacks/todoCreated"
           }
         }
       }
@@ -375,6 +409,60 @@
         "responses": {
           "200": {
             "description": "System is healthy"
+          }
+        }
+      }
+    },
+    "/categories": {
+      "get": {
+        "summary": "Alle Kategorien abrufen",
+        "operationId": "getCategories",
+        "deprecated": true,
+        "tags": [
+          "Categories"
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste der Kategorien",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Category"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Neue Kategorie erstellen",
+        "operationId": "createCategory",
+        "tags": [
+          "Categories"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CategoryInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Kategorie erstellt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Category"
+                }
+              }
+            }
           }
         }
       }
@@ -527,7 +615,8 @@
               "IN_PROGRESS",
               "COMPLETED",
               "CANCELLED"
-            ]
+            ],
+            "default": "IN_PROGRESS"
           },
           "priority": {
             "type": "string",
@@ -535,11 +624,14 @@
               "LOW",
               "MEDIUM",
               "HIGH"
-            ]
+            ],
+            "deprecated": true
           },
           "dueDate": {
             "type": "string",
-            "format": "date"
+            "format": "date",
+            "readOnly": true,
+            "writeOnly": false
           }
         }
       },
@@ -621,6 +713,238 @@
           "description": {
             "type": "string"
           }
+        }
+      },
+      "Category": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "color"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string",
+            "example": "Work",
+            "minLength": 3,
+            "maxLength": 80
+          },
+          "description": {
+            "type": "string",
+            "example": "Work-related tasks"
+          },
+          "color": {
+            "type": "string",
+            "example": "#FF5733"
+          },
+          "icon": {
+            "type": "string",
+            "example": "briefcase"
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 10,
+            "maximum": 50
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "maxItems": 10,
+            "uniqueItems": true
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        }
+      },
+      "CategoryInput": {
+        "type": "object",
+        "required": [
+          "name",
+          "color"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "color": {
+            "type": "string",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "icon": {
+            "type": "string"
+          }
+        }
+      },
+      "Notification": {
+        "type": "object",
+        "required": [
+          "notificationType"
+        ],
+        "properties": {
+          "notificationType": {
+            "type": "string"
+          }
+        },
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "email": "#/components/schemas/EmailNotification"
+          }
+        },
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/EmailNotification"
+          }
+        ]
+      },
+      "EmailNotification": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Notification"
+          },
+          {
+            "type": "object",
+            "required": [
+              "emailAddress"
+            ],
+            "properties": {
+              "emailAddress": {
+                "type": "string",
+                "format": "email"
+              },
+              "subject": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "SmsNotification": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Notification"
+          },
+          {
+            "type": "object",
+            "required": [
+              "phoneNumber"
+            ],
+            "properties": {
+              "phoneNumber": {
+                "type": "string",
+                "pattern": "^\\+[1-9]\\d{1,14}$"
+              },
+              "message": {
+                "type": "string",
+                "maxLength": 160
+              }
+            }
+          }
+        ]
+      }
+    },
+    "securitySchemes": {
+      "apiKey": {
+        "type": "http",
+        "scheme": "bearer"
+      },
+      "oauth2": {
+        "type": "oauth2",
+        "flows": {
+          "clientCredentials": {
+            "tokenUrl": "https://auth.example.com/oauth/token",
+            "scopes": {
+              "read:todos": "Todos lesen",
+              "write:todos": "Todos schreiben"
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "UnauthorizedError": {
+        "description": "Zugriff verweigert - Authentifizierung erforderlich",
+        "headers": {
+          "X-Rate-Limit": {
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Anzahl der verbleibenden Anfragen",
+            "required": true
+          }
+        }
+      }
+    },
+    "callbacks": {
+      "todoStatusChanged": {
+        "{$request.body#/webhookUrl}": {
+          "post": {
+            "requestBody": {
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "todoId": {
+                        "type": "integer"
+                      },
+                      "newStatus": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "responses": {
+              "200": {
+                "description": "Callback erfolgreich"
+              }
+            }
+          }
+        }
+      },
+      "todoCreated": {
+        "{$request.body#/webhookUrl}": {
+          "post": {
+            "requestBody": {
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object"
+                  }
+                }
+              }
+            },
+            "responses": {
+              "200": {
+                "description": "Todo created callback"
+              }
+            }
+          }
+        }
+      }
+    },
+    "links": {
+      "GetUserTodos": {
+        "operationId": "getUserTodos",
+        "parameters": {
+          "userId": "$response.body#/userId"
         }
       }
     }
