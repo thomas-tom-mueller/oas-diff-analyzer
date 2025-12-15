@@ -2,6 +2,9 @@ package com.oas.diff.model;
 
 /**
  * Repräsentiert die Schwere einer Änderung zwischen OAS-Versionen.
+ *
+ * Sortierung von kritisch zu informativ:
+ * CRITICAL > MAJOR > MINOR > WARNING > INFO
  */
 public enum ChangeSeverity {
     /**
@@ -20,7 +23,13 @@ public enum ChangeSeverity {
     MINOR("Klein"),
 
     /**
-     * Informativ - Keine Breaking Changes
+     * Warnung - Zukünftige Breaking Changes (Deprecations)
+     * Noch nicht breaking, aber Handlungsbedarf für die Zukunft
+     */
+    WARNING("Warnung"),
+
+    /**
+     * Informativ - Keine Breaking Changes, neue Features
      */
     INFO("Information");
 
