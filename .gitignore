@@ -84,5 +84,7 @@ secrets/
 src/test/resources/test-api.yaml
 src/test/resources/test-api.json
 
+# Exclude markdown files from documentation
 QUICKSTART.md
 CHANGELOG_FORMATS.md
+RULES_IMPLEMENTATION.md

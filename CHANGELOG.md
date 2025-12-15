@@ -12,6 +12,11 @@ Weitere Informationen:
 
 - (Platzhalter für kommende Änderungen)
 
+## [0.1.2] - 2025-12-15
+
+### Added
+- Implement missing Rules
+
 ## [0.1.1] - 2025-12-15
 
 ### Added
