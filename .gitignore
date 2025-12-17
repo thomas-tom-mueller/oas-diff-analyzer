@@ -96,3 +96,7 @@ IMPLEMENTATION_STATUS.md
 MISSING_RULES_ANALYSIS.md
 SESSION_PROGRESS.md
 PROJECT_COMPLETE.md
+
+# Exclude test files
+/oas-diff-examples/src/main/resources/examples/oas3-compare-new.json
+/oas-diff-examples/src/main/resources/examples/oas3-compare-old.json
